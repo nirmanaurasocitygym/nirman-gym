@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Nirman Society Gym</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --fire:#FF5722; --fire2:#FF8C00; --dark:#0D1117; --dark2:#161B22;
+      --card:#1C2128; --border:#30363D; --text:#E6EDF3; --muted:#8B949E;
+      --green:#3FB950; --red:#F85149;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{
+      font-family:'Baloo 2','Noto Sans Devanagari',sans-serif;
+      background:var(--dark);min-height:100vh;
+      display:flex;align-items:center;justify-content:center;padding:16px;
+      background-image:
+        radial-gradient(ellipse at 20% 10%,rgba(255,87,34,.08) 0%,transparent 50%),
+        radial-gradient(ellipse at 80% 90%,rgba(255,140,0,.06) 0%,transparent 50%);
+    }
+    .card{
+      background:var(--card);border:1px solid var(--border);border-radius:24px;
+      padding:28px 22px 24px;width:100%;max-width:400px;
+      box-shadow:0 0 0 1px rgba(255,87,34,.1),0 24px 64px rgba(0,0,0,.5);
+      animation:fadeUp .4s ease;
+    }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .header{text-align:center;margin-bottom:22px}
+    .dumbbell-icon{font-size:52px;line-height:1;filter:drop-shadow(0 0 12px rgba(255,87,34,.6));animation:pulse 2.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{filter:drop-shadow(0 0 10px rgba(255,87,34,.5))}50%{filter:drop-shadow(0 0 22px rgba(255,87,34,.9))}}
+    .header h1{font-size:20px;font-weight:800;color:var(--text);margin-top:10px}
+    .header p{font-size:12px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase}
+    hr.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+    .section-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+    .section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--border),transparent)}
+    .form-group{margin-bottom:14px}
+    .form-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+    .form-group input,.form-group select{
+      width:100%;padding:13px 16px;background:var(--dark2);border:1.5px solid var(--border);
+      border-radius:12px;font-size:15px;font-family:inherit;color:var(--text);outline:none;
+      transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;
+    }
+    .form-group input::placeholder{color:var(--muted)}
+    .form-group input:focus,.form-group select:focus{border-color:var(--fire);box-shadow:0 0 0 3px rgba(255,87,34,.15)}
+    .form-group select option{background:var(--dark2)}
+    .btn{width:100%;padding:16px;border:none;border-radius:14px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;transition:transform .12s,box-shadow .2s;letter-spacing:.3px}
+    .btn:active{transform:scale(.96)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn-primary{background:linear-gradient(135deg,var(--fire),var(--fire2));color:white;box-shadow:0 4px 24px rgba(255,87,34,.35);margin-top:6px}
+    .btn-in{background:linear-gradient(135deg,#1a4d2e,#2d7a47);border:1.5px solid var(--green);color:var(--green);font-size:20px;padding:22px;box-shadow:0 4px 24px rgba(63,185,80,.25)}
+    .btn-out{background:linear-gradient(135deg,#4d1a1a,#7a2d2d);border:1.5px solid var(--red);color:var(--red);font-size:20px;padding:22px;box-shadow:0 4px 24px rgba(248,81,73,.25)}
+    .member-card{background:var(--dark2);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:20px;text-align:center}
+    .member-avatar{width:56px;height:56px;background:linear-gradient(135deg,var(--fire),var(--fire2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px}
+    .member-name{font-size:20px;font-weight:800;color:var(--text)}
+    .member-meta{font-size:13px;color:var(--muted);margin-top:4px}
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-top:10px;text-transform:uppercase;letter-spacing:.5px}
+    .badge-in{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+    .badge-out{background:rgba(248,81,73,.12);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+    .time-box{background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;color:var(--muted);text-align:center;margin-top:14px}
+    .success-wrap{text-align:center;padding:10px 0}
+    .big-emoji{font-size:72px;line-height:1;margin-bottom:16px;display:block;animation:pop .4s cubic-bezier(.175,.885,.32,1.275)}
+    @keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+    .success-title{font-size:26px;font-weight:800;margin-bottom:8px}
+    .success-sub{font-size:15px;color:var(--muted);line-height:1.6}
+    .status-chip{display:inline-block;font-size:22px;font-weight:800;padding:4px 20px;border-radius:8px;margin:6px 0}
+    .loading-wrap{text-align:center;padding:40px 20px}
+    .spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--fire);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-text{color:var(--muted);font-size:15px}
+    .alert-err{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red);padding:11px 14px;border-radius:10px;font-size:14px;margin-top:12px;text-align:center}
+    .ghost-btn{background:none;border:none;color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer;display:block;margin:14px auto 0;text-decoration:underline;text-underline-offset:3px}
+    .ghost-btn:hover{color:var(--text)}
+    .progress-bar{height:3px;background:var(--border);border-radius:3px;margin-top:18px;overflow:hidden}
+    .progress-fill{height:100%;border-radius:3px;background:linear-gradient(to right,var(--fire),var(--fire2));animation:drain 3s linear forwards}
+    @keyframes drain{from{width:100%}to{width:0%}}
+  </style>
+</head>
+<body>
+<div class="card" id="app"></div>
+
+<script>
+// ⚠️⚠️ हे तुमच्या Apps Script Deployment URL ने replace करा ⚠️⚠️
+const API_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+// उदा: 'https://script.google.com/macros/s/AKfycb.../exec'
+
+// ─── Helpers ───────────────────────────────────────────────
+const app = document.getElementById('app');
+
+function header() {
+  return `
+    <div class="header">
+      <div class="dumbbell-icon">🏋️</div>
+      <h1>Nirman Society Gym</h1>
+      <p>A Building &amp; B Building</p>
+    </div>
+    <hr class="divider">`;
+}
+
+async function apiPost(body) {
+  const r = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'text/plain' } // text/plain avoids CORS preflight
+  });
+  return r.json();
+}
+
+async function apiGet(params) {
+  const qs = new URLSearchParams(params).toString();
+  const r  = await fetch(`${API_URL}?${qs}`);
+  return r.json();
+}
+
+function nowIST() {
+  return new Date().toLocaleString('en-IN', {
+    timeZone:'Asia/Kolkata', weekday:'short', year:'numeric',
+    month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+}
+
+// ─── Init ──────────────────────────────────────────────────
+window.onload = async () => {
+  const id = localStorage.getItem('gymMemberId');
+  if (id) {
+    showLoading('माहिती लोड होत आहे…');
+    try {
+      const r = await apiGet({ action: 'status', memberId: id });
+      if (r.success) showAttendance(r.member, r.lastStatus);
+      else { localStorage.removeItem('gymMemberId'); showRegForm(); }
+    } catch(e) { showCriticalError(); }
+  } else {
+    showRegForm();
+  }
+};
+
+// ─── Screens ───────────────────────────────────────────────
+function showLoading(msg) {
+  app.innerHTML = `${header()}
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+      <p class="loading-text">${msg}</p>
+    </div>`;
+}
+
+function showRegForm(pre={}) {
+  app.innerHTML = `${header()}
+    <div class="section-title">📝 नवीन सभासद नोंदणी</div>
+    <div class="form-group">
+      <label>पूर्ण नाव</label>
+      <input id="f-name" type="text" placeholder="उदा. राजेश पाटील" value="${pre.name||''}" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label>बिल्डिंग</label>
+      <select id="f-bldg">
+        <option value="">— निवडा —</option>
+        <option value="A Building" ${pre.building==='A Building'?'selected':''}>🅐 A Building</option>
+        <option value="B Building" ${pre.building==='B Building'?'selected':''}>🅑 B Building</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>फ्लॅट नंबर</label>
+      <input id="f-flat" type="text" placeholder="उदा. A-101" value="${pre.flat||''}">
+    </div>
+    <div class="form-group">
+      <label>मोबाइल नंबर</label>
+      <input id="f-phone" type="tel" placeholder="10 अंकी नंबर" maxlength="10" inputmode="numeric" value="${pre.phone||''}">
+    </div>
+    <button class="btn btn-primary" id="reg-btn" onclick="submitReg()">✅ नोंदणी करा</button>
+    <div id="reg-err"></div>`;
+}
+
+function showAttendance(member, lastSt) {
+  const isIn   = lastSt === 'IN';
+  const initials = member.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  app.innerHTML = `${header()}
+    <div class="member-card">
+      <div class="member-avatar">${initials}</div>
+      <div class="member-name">${member.name}</div>
+      <div class="member-meta">${member.building} &nbsp;·&nbsp; फ्लॅट ${member.flat}</div>
+      <span class="badge ${isIn?'badge-in':'badge-out'}">${isIn?'🟢 आत आहे':'🔴 बाहेर आहे'}</span>
+    </div>
+    <button class="btn ${isIn?'btn-out':'btn-in'}" id="att-btn"
+            onclick="doAttendance('${member.id}')">
+      ${isIn?'🚪 जिम सोडत आहे &nbsp;— OUT':'💪 जिमला येत आहे &nbsp;— IN'}
+    </button>
+    <div class="time-box">📅 ${nowIST()}</div>
+    <button class="ghost-btn" onclick="switchMember()">↩ वेगळ्या सभासदाने लॉगिन करा</button>
+    <div id="att-err"></div>`;
+}
+
+function showSuccess(status, name, ts) {
+  const isIn  = status === 'IN';
+  const color = isIn ? 'var(--green)' : 'var(--red)';
+  const chipBg= isIn ? 'rgba(63,185,80,.15)' : 'rgba(248,81,73,.15)';
+  app.innerHTML = `${header()}
+    <div class="success-wrap">
+      <span class="big-emoji">${isIn?'💪':'👋'}</span>
+      <div class="success-title" style="color:${color}">${isIn?'व्यायामासाठी स्वागत!':'पुन्हा या!'}</div>
+      <p class="success-sub">
+        <strong>${name}</strong> यांची नोंद झाली<br>
+        <span class="status-chip" style="background:${chipBg};color:${color}">${status}</span>
+      </p>
+      <div class="time-box" style="margin-top:14px">⏰ ${ts}</div>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+    </div>`;
+
+  setTimeout(async () => {
+    const id = localStorage.getItem('gymMemberId');
+    if (!id) return;
+    const s = await apiGet({ action:'status', memberId:id });
+    if (s.success) showAttendance(s.member, s.lastStatus);
+  }, 3000);
+}
+
+function showCriticalError() {
+  app.innerHTML = `${header()}
+    <div style="text-align:center;padding:24px 0">
+      <span style="font-size:52px">⚠️</span>
+      <p style="color:var(--muted);margin-top:12px;font-size:15px;line-height:1.6">
+        कनेक्शन त्रुटी आली.<br>Internet तपासा आणि पुन्हा प्रयत्न करा.
+      </p>
+      <button class="btn btn-primary" style="margin-top:20px" onclick="location.reload()">🔄 पुन्हा प्रयत्न करा</button>
+    </div>`;
+}
+
+// ─── Actions ───────────────────────────────────────────────
+async function submitReg() {
+  const name  = document.getElementById('f-name').value.trim();
+  const bldg  = document.getElementById('f-bldg').value;
+  const flat  = document.getElementById('f-flat').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const err   = document.getElementById('reg-err');
+
+  if (!name || !bldg || !flat || !phone) {
+    err.innerHTML='<div class="alert-err">⚠️ सर्व माहिती भरणे आवश्यक आहे</div>'; return;
+  }
+  if (!/^\d{10}$/.test(phone)) {
+    err.innerHTML='<div class="alert-err">⚠️ 10 अंकी मोबाइल नंबर टाका</div>'; return;
+  }
+
+  document.getElementById('reg-btn').disabled = true;
+  showLoading('नोंदणी होत आहे…');
+
+  try {
+    const r = await apiPost({ action:'register', name, flat, building:bldg, phone });
+    if (r.alreadyRegistered || r.success) {
+      localStorage.setItem('gymMemberId', r.memberId);
+      const s = await apiGet({ action:'status', memberId: r.memberId });
+      if (s.success) showAttendance(s.member, s.lastStatus);
+    } else {
+      showRegForm({ name, building:bldg, flat, phone });
+      document.getElementById('reg-err').innerHTML =
+        `<div class="alert-err">⚠️ ${r.message}</div>`;
+    }
+  } catch(e) { showCriticalError(); }
+}
+
+async function doAttendance(memberId) {
+  document.getElementById('att-btn').disabled = true;
+  showLoading('नोंद होत आहे…');
+  try {
+    const r = await apiPost({ action:'attendance', memberId });
+    if (r.success) showSuccess(r.status, r.name, r.timestamp);
+    else showCriticalError();
+  } catch(e) { showCriticalError(); }
+}
+
+function switchMember() {
+  if (confirm('तुमचे लॉगिन काढले जाईल. खात्री आहे का?')) {
+    localStorage.removeItem('gymMemberId');
+    showRegForm();
+  }
+}
+</script>
+</body>
+</html>
