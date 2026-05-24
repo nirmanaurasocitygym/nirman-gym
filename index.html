@@ -108,7 +108,7 @@
 <div class="card" id="app"></div>
 <script>
 // ⚠️ Apps Script Deployment URL इथे टाका
-const API_URL = 'https://script.google.com/macros/s/AKfycbz1Q8k5ocrwf5VQL4KCPF4lLqHPQuedlyX6_rlnB39eTDPx89ezaLKAzK9pYnhSVoI/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyHttuvjFLXsKhG3epvv98tElP17DlrZolwQujnoL9SLIG9sC4gdr_9x0o9vsz4ldw/exec';
 
 const app = document.getElementById('app');
 
@@ -186,9 +186,8 @@ function showAttendance(member, lastSt) {
     ${isIn?'🚪 जिम सोडत आहे &nbsp;— OUT':'💪 जिमला येत आहे &nbsp;— IN'}
   </button>
   <div class="time-box">📅 ${nowIST()}</div>
-  <button class="ghost-btn" style="color:var(--blue);margin-top:10px" onclick="showMemberReport('${member.id}')">📊 माझा Attendance Report</button>
+  <button class="report-link" onclick="showMyReport('${member.id}')">📊 माझा Attendance Report बघा</button>
   <button class="ghost-btn" onclick="switchMember()">↩ वेगळ्या सभासदाने लॉगिन करा</button>
-  <button class="report-link" onclick="showMyReport(member.id)">📊 माझा Attendance Report बघा</button>
   <div id="att-err"></div>`;
 }
 
