@@ -245,8 +245,8 @@ body{font-family:'Baloo 2',sans-serif;background:var(--dark);color:var(--text);m
 </div>
 
 <script>
-const API_URL   = 'https://script.google.com/macros/s/AKfycbyHttuvjFLXsKhG3epvv98tElP17DlrZolwQujnoL9SLIG9sC4gdr_9x0o9vsz4ldw/exec'; // ⚠️ तुमची Apps Script URL
-const ADMIN_PIN = '1234';                        // ⚠️ तुमचा PIN
+const API_URL   = 'https://script.google.com/macros/s/AKfycbyLTp6xqzq_gwIcOz0LaYZ-_eLH7tvnBbwMHawlABhiZPF15EmmtEO5hxB8mB6Sys8/exec'; // ⚠️ तुमची Apps Script URL
+// PIN आता Apps Script Properties मध्ये आहे — इथे नाही ✅
 
 let allMembers  = [], todayData = [], reportData = null;
 let mBldgFilter = 'all', todayFilter = 'all', reportPeriod = 'week';
@@ -260,17 +260,27 @@ function pinPress(n) {
 }
 function pinDel() { pinEntered = pinEntered.slice(0,-1); updateDots(); document.getElementById('pinError').textContent=''; }
 function updateDots() { for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i<pinEntered.length); }
-function checkPin() {
-  if (pinEntered === ADMIN_PIN) {
-    sessionStorage.setItem('gymAdmin','1');
-    document.getElementById('pinScreen').style.display='none';
-    document.getElementById('mainApp').classList.add('visible');
-    loadLive(); loadToday(); loadMembers();
-  } else {
-    document.getElementById('pinError').textContent='❌ चुकीचा PIN!';
+async function checkPin() {
+  // ✅ PIN verification → Server वर होते, browser मध्ये नाही
+  document.getElementById('pinError').textContent = '⏳ तपासत आहे…';
+  try {
+    const r = await api({ action:'verifyPin', pin: pinEntered });
+    if (r.success) {
+      // Token session मध्ये साठव (page बंद झाल्यावर आपोआप delete)
+      sessionStorage.setItem('gymToken', r.token);
+      sessionStorage.setItem('gymAdmin','1');
+      document.getElementById('pinScreen').style.display='none';
+      document.getElementById('mainApp').classList.add('visible');
+      loadLive(); loadToday(); loadMembers();
+    } else {
+      document.getElementById('pinError').textContent = '❌ ' + (r.message || 'चुकीचा PIN!');
+      pinEntered=''; updateDots();
+      const card=document.querySelector('.pin-card');
+      card.style.animation='none'; card.offsetHeight; card.style.animation='shake .4s ease';
+    }
+  } catch(e) {
+    document.getElementById('pinError').textContent = '⚠️ Connection error';
     pinEntered=''; updateDots();
-    const card=document.querySelector('.pin-card');
-    card.style.animation='none'; card.offsetHeight; card.style.animation='shake .4s ease';
   }
 }
 function logout() {
@@ -279,15 +289,29 @@ function logout() {
   document.getElementById('pinScreen').style.display='flex';
   pinEntered=''; updateDots();
 }
-if (sessionStorage.getItem('gymAdmin')==='1') {
+// Token valid असेल तरच auto-login
+const _savedToken = sessionStorage.getItem('gymToken');
+const _isAdmin    = sessionStorage.getItem('gymAdmin');
+if (_isAdmin === '1' && _savedToken) {
   document.getElementById('pinScreen').style.display='none';
   document.getElementById('mainApp').classList.add('visible');
+  // Background मध्ये token verify करा
+  api({ action:'liveList' }).then(r => {
+    if (r.code === 401) logout();
+    else { loadLive(); loadToday(); loadMembers(); }
+  });
 }
 
 // ── API ──────────────────────────────────────────────────
 async function api(params) {
+  // Admin token आपोआप add होतो
+  const token = sessionStorage.getItem('gymToken');
+  if (token && params.action !== 'verifyPin') params.token = token;
   const r = await fetch(`${API_URL}?${new URLSearchParams(params)}`, {redirect:'follow'});
-  return r.json();
+  const data = await r.json();
+  // Token expired असेल तर logout
+  if (data.code === 401) { logout(); return data; }
+  return data;
 }
 
 // ── Tabs ─────────────────────────────────────────────────
