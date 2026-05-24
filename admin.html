@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nirman Gym Admin</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gym Admin">
+<meta name="theme-color" content="#FF5722">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  --dark:#0D1117;--dark2:#161B22;--card:#1C2128;--border:#30363D;
+  --text:#E6EDF3;--muted:#8B949E;--fire:#FF5722;--fire2:#FF8C00;
+  --green:#3FB950;--red:#F85149;--blue:#58A6FF;--purple:#BC8CFF;--yellow:#E3B341;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Baloo 2',sans-serif;background:var(--dark);color:var(--text);min-height:100vh}
+
+.pin-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:radial-gradient(ellipse at 30% 20%,rgba(255,87,34,.08),transparent 60%),
+              radial-gradient(ellipse at 70% 80%,rgba(88,166,255,.06),transparent 60%)}
+.pin-card{background:var(--card);border:1px solid var(--border);border-radius:24px;
+  padding:36px 28px;width:100%;max-width:360px;text-align:center;
+  box-shadow:0 0 0 1px rgba(255,87,34,.1),0 24px 64px rgba(0,0,0,.5)}
+.pin-icon{font-size:56px;margin-bottom:12px}
+.pin-title{font-size:22px;font-weight:800;margin-bottom:4px}
+.pin-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:28px}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);transition:all .2s}
+.pin-dot.filled{background:var(--fire);border-color:var(--fire);box-shadow:0 0 8px rgba(255,87,34,.6)}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto}
+.pin-btn{padding:18px 0;background:var(--dark2);border:1.5px solid var(--border);border-radius:14px;
+  font-size:22px;font-weight:700;font-family:inherit;color:var(--text);cursor:pointer;transition:all .12s}
+.pin-btn:active{transform:scale(.94);background:var(--border)}
+.pin-btn.del{font-size:18px;color:var(--muted)}
+.pin-error{color:var(--red);font-size:13px;margin-top:14px;height:18px}
+
+.app{display:none;min-height:100vh}
+.app.visible{display:block}
+
+.topnav{background:var(--dark2);border-bottom:1px solid var(--border);padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.nav-title{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+.nav-badge{background:rgba(255,87,34,.15);color:var(--fire);border:1px solid rgba(255,87,34,.3);
+  padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.logout-btn{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red);
+  padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+
+.tabs{display:flex;background:var(--dark2);border-bottom:1px solid var(--border);overflow-x:auto;
+  scrollbar-width:none;position:sticky;top:57px;z-index:99}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:13px 18px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;
+  white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;font-family:inherit;
+  background:none;border-left:none;border-right:none;border-top:none}
+.tab.active{color:var(--fire);border-bottom-color:var(--fire)}
+
+.page{display:none;padding:16px}
+.page.active{display:block}
+
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center}
+.stat-num{font-size:32px;font-weight:800;line-height:1}
+.stat-label{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+.sec-title{font-size:14px;font-weight:700;color:var(--text);margin:20px 0 10px;
+  display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.entry-row{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.entry-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.entry-info{flex:1;min-width:0}
+.entry-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.badge-in{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.3);
+  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-out{background:rgba(248,81,73,.12);color:var(--red);border:1px solid rgba(248,81,73,.3);
+  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-reg{background:rgba(88,166,255,.12);color:var(--blue);border:1px solid rgba(88,166,255,.3);
+  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+
+.search-box{width:100%;padding:12px 16px;background:var(--card);border:1.5px solid var(--border);
+  border-radius:12px;font-size:14px;font-family:inherit;color:var(--text);outline:none;margin-bottom:14px}
+.search-box:focus{border-color:var(--fire);box-shadow:0 0 0 3px rgba(255,87,34,.15)}
+.search-box::placeholder{color:var(--muted)}
+
+.filter-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-btn{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;
+  white-space:nowrap;font-family:inherit;border:1.5px solid var(--border);
+  background:var(--card);color:var(--muted);transition:all .15s}
+.filter-btn.active{background:var(--fire);border-color:var(--fire);color:white}
+
+.chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
+.chart-title{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bar-label{font-size:10px;color:var(--muted);width:36px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:14px;background:var(--dark2);border-radius:7px;overflow:hidden}
+.bar-fill{height:100%;border-radius:7px;transition:width .5s ease}
+.bar-val{font-size:11px;font-weight:700;width:28px;text-align:left;flex-shrink:0}
+
+/* ── PDF Download Buttons ── */
+.pdf-btn-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.pdf-btn{display:flex;align-items:center;gap:7px;padding:12px 18px;border-radius:12px;
+  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s}
+.pdf-btn:active{transform:scale(.96)}
+.pdf-btn-today{background:linear-gradient(135deg,#1a4d2e,#2d7a47);border:1.5px solid var(--green);color:var(--green)}
+.pdf-btn-members{background:linear-gradient(135deg,#1a2744,#1e3a8a);border:1.5px solid var(--blue);color:var(--blue)}
+.pdf-btn-report{background:linear-gradient(135deg,#3d1a00,#7c3a00);border:1.5px solid var(--fire);color:var(--fire)}
+.pdf-btn-week{background:linear-gradient(135deg,#2d1a4d,#5b21b6);border:1.5px solid var(--purple);color:var(--purple)}
+.pdf-icon{font-size:18px}
+
+.loading{text-align:center;padding:40px;color:var(--muted)}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--fire);
+  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:32px;color:var(--muted);font-size:14px}
+.refresh-btn{background:rgba(255,87,34,.1);border:1px solid rgba(255,87,34,.3);color:var(--fire);
+  padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:14px}
+.last-updated{font-size:11px;color:var(--muted);text-align:center;margin-top:12px}
+.time-chip{font-size:11px;color:var(--muted);background:var(--dark2);padding:2px 8px;border-radius:6px;margin-top:4px;display:inline-block}
+.duration-chip{font-size:11px;color:var(--yellow);background:rgba(227,179,65,.1);border:1px solid rgba(227,179,65,.2);padding:2px 8px;border-radius:6px}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div class="pin-screen" id="pinScreen">
+  <div class="pin-card">
+    <div class="pin-icon">🔐</div>
+    <div class="pin-title">Admin Login</div>
+    <div class="pin-sub">Nirman Society Gym — Admin Panel</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn"></button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn del" onclick="pinDel()">⌫</button>
+    </div>
+    <div class="pin-error" id="pinError"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="mainApp">
+  <div class="topnav">
+    <div class="nav-title">🏋️ Admin Panel <span class="nav-badge">ADMIN</span></div>
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('live',this)">🟢 Live</button>
+    <button class="tab" onclick="showTab('today',this)">📋 Today</button>
+    <button class="tab" onclick="showTab('members',this)">👥 Members</button>
+    <button class="tab" onclick="showTab('report',this)">📊 Report</button>
+  </div>
+
+  <!-- LIVE -->
+  <div class="page active" id="page-live">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num" style="color:var(--green)" id="statInside">—</div><div class="stat-label">आत आहेत</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--blue)" id="statToday">—</div><div class="stat-label">आजचे Visits</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--yellow)" id="statMembers">—</div><div class="stat-label">Total Members</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--purple)" id="statABldg">—</div><div class="stat-label">आज A Bldg</div></div>
+    </div>
+    <button class="refresh-btn" onclick="loadLive()">🔄 Refresh करा</button>
+    <div class="sec-title">🟢 सध्या जिममध्ये आहेत</div>
+    <div id="liveList"><div class="loading"><div class="spinner"></div>लोड होत आहे…</div></div>
+    <div class="last-updated" id="liveUpdated"></div>
+  </div>
+
+  <!-- TODAY -->
+  <div class="page" id="page-today">
+    <div class="pdf-btn-row">
+      <button class="pdf-btn pdf-btn-today" onclick="downloadTodayPDF()">
+        <span class="pdf-icon">📄</span> आजचा Report PDF
+      </button>
+    </div>
+    <button class="refresh-btn" onclick="loadToday()">🔄 Refresh करा</button>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterToday('all',this)">सर्व</button>
+      <button class="filter-btn" onclick="filterToday('IN',this)">🟢 IN फक्त</button>
+      <button class="filter-btn" onclick="filterToday('OUT',this)">🔴 OUT फक्त</button>
+      <button class="filter-btn" onclick="filterToday('A Building',this)">🅐 A Bldg</button>
+      <button class="filter-btn" onclick="filterToday('B Building',this)">🅑 B Bldg</button>
+    </div>
+    <div class="sec-title">📋 आजच्या नोंदी</div>
+    <div id="todayList"><div class="loading"><div class="spinner"></div>लोड होत आहे…</div></div>
+  </div>
+
+  <!-- MEMBERS -->
+  <div class="page" id="page-members">
+    <div class="pdf-btn-row">
+      <button class="pdf-btn pdf-btn-members" onclick="downloadMembersPDF()">
+        <span class="pdf-icon">📄</span> Members List PDF
+      </button>
+    </div>
+    <input class="search-box" id="searchBox" type="text"
+      placeholder="🔍 नाव, फ्लॅट नं किंवा मोबाईल शोधा…"
+      oninput="filterMembers()" autocomplete="off">
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterMBldg('all',this)">सर्व</button>
+      <button class="filter-btn" onclick="filterMBldg('A Building',this)">🅐 A Building</button>
+      <button class="filter-btn" onclick="filterMBldg('B Building',this)">🅑 B Building</button>
+    </div>
+    <div class="sec-title">👥 सभासद यादी <span id="memberCount" style="color:var(--muted);font-size:12px"></span></div>
+    <div id="memberList"><div class="loading"><div class="spinner"></div>लोड होत आहे…</div></div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="page" id="page-report">
+    <div class="pdf-btn-row">
+      <button class="pdf-btn pdf-btn-report" onclick="downloadReportPDF('week')" id="pdfWeekBtn">
+        <span class="pdf-icon">📄</span> आठवडा PDF
+      </button>
+      <button class="pdf-btn pdf-btn-week" onclick="downloadReportPDF('month')" id="pdfMonthBtn">
+        <span class="pdf-icon">📄</span> महिना PDF
+      </button>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="loadReport('week',this)">आठवडा</button>
+      <button class="filter-btn" onclick="loadReport('month',this)">महिना</button>
+    </div>
+    <div id="reportContent"><div class="loading"><div class="spinner"></div>लोड होत आहे…</div></div>
+  </div>
+</div>
+
+<script>
+const API_URL   = 'YOUR_APPS_SCRIPT_URL_HERE'; // ⚠️ तुमची Apps Script URL
+const ADMIN_PIN = '1234';                        // ⚠️ तुमचा PIN
+
+let allMembers  = [], todayData = [], reportData = null;
+let mBldgFilter = 'all', todayFilter = 'all', reportPeriod = 'week';
+
+// ── PIN ─────────────────────────────────────────────────
+let pinEntered = '';
+function pinPress(n) {
+  if (!n || pinEntered.length >= 4) return;
+  pinEntered += n; updateDots();
+  if (pinEntered.length === 4) setTimeout(checkPin, 120);
+}
+function pinDel() { pinEntered = pinEntered.slice(0,-1); updateDots(); document.getElementById('pinError').textContent=''; }
+function updateDots() { for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i<pinEntered.length); }
+function checkPin() {
+  if (pinEntered === ADMIN_PIN) {
+    sessionStorage.setItem('gymAdmin','1');
+    document.getElementById('pinScreen').style.display='none';
+    document.getElementById('mainApp').classList.add('visible');
+    loadLive(); loadToday(); loadMembers();
+  } else {
+    document.getElementById('pinError').textContent='❌ चुकीचा PIN!';
+    pinEntered=''; updateDots();
+    const card=document.querySelector('.pin-card');
+    card.style.animation='none'; card.offsetHeight; card.style.animation='shake .4s ease';
+  }
+}
+function logout() {
+  sessionStorage.removeItem('gymAdmin');
+  document.getElementById('mainApp').classList.remove('visible');
+  document.getElementById('pinScreen').style.display='flex';
+  pinEntered=''; updateDots();
+}
+if (sessionStorage.getItem('gymAdmin')==='1') {
+  document.getElementById('pinScreen').style.display='none';
+  document.getElementById('mainApp').classList.add('visible');
+}
+
+// ── API ──────────────────────────────────────────────────
+async function api(params) {
+  const r = await fetch(`${API_URL}?${new URLSearchParams(params)}`, {redirect:'follow'});
+  return r.json();
+}
+
+// ── Tabs ─────────────────────────────────────────────────
+function showTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-'+name).classList.add('active');
+  if (name==='live')    loadLive();
+  if (name==='today')   loadToday();
+  if (name==='members') loadMembers();
+  if (name==='report')  loadReport(reportPeriod, document.querySelector('#page-report .filter-btn'));
+}
+
+// ── Helpers ──────────────────────────────────────────────
+const COLORS=['#FF5722','#2979FF','#00C853','#AA00FF','#FF8C00','#00BCD4','#E3B341'];
+function avatarColor(s){let h=0;for(let c of(s||''))h=(h*31+c.charCodeAt(0))&0xffffffff;return COLORS[Math.abs(h)%COLORS.length];}
+function initials(n){return(n||'').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);}
+function avatar(n){const col=avatarColor(n);return `<div class="entry-avatar" style="background:${col}20;color:${col}">${initials(n)}</div>`;}
+
+// ── LIVE ─────────────────────────────────────────────────
+async function loadLive() {
+  document.getElementById('liveList').innerHTML='<div class="loading"><div class="spinner"></div>लोड होत आहे…</div>';
+  try {
+    const [stats,live]=await Promise.all([api({action:'stats'}),api({action:'liveList'})]);
+    if(stats.success){
+      document.getElementById('statInside').textContent=stats.insideCount;
+      document.getElementById('statToday').textContent=stats.totalVisits;
+      document.getElementById('statMembers').textContent=stats.totalMembers;
+      document.getElementById('statABldg').textContent=stats.aBldgToday||0;
+    }
+    if(live.success&&live.members&&live.members.length){
+      document.getElementById('liveList').innerHTML=live.members.map(m=>`
+        <div class="entry-row">${avatar(m.name)}
+          <div class="entry-info">
+            <div class="entry-name">${m.name}</div>
+            <div class="entry-meta">${m.building} · फ्लॅट ${m.flat}</div>
+            <div class="time-chip">IN: ${m.inTime}</div>
+          </div><span class="badge-in">🟢 आत</span></div>`).join('');
+    } else {
+      document.getElementById('liveList').innerHTML='<div class="empty">😴 सध्या कोणीही नाही</div>';
+    }
+    document.getElementById('liveUpdated').textContent='शेवटचे update: '+new Date().toLocaleTimeString('en-IN');
+  } catch(e){document.getElementById('liveList').innerHTML='<div class="empty">⚠️ '+e.message+'</div>';}
+}
+
+// ── TODAY ────────────────────────────────────────────────
+async function loadToday() {
+  document.getElementById('todayList').innerHTML='<div class="loading"><div class="spinner"></div>लोड होत आहे…</div>';
+  try {
+    const r=await api({action:'todayAttendance'});
+    if(r.success){todayData=r.entries||[];renderToday();}
+  } catch(e){document.getElementById('todayList').innerHTML='<div class="empty">⚠️ Error</div>';}
+}
+function renderToday() {
+  let data=todayData;
+  if(todayFilter==='IN')data=data.filter(e=>!e.outTime);
+  else if(todayFilter==='OUT')data=data.filter(e=>e.outTime);
+  else if(todayFilter==='A Building')data=data.filter(e=>e.building==='A Building');
+  else if(todayFilter==='B Building')data=data.filter(e=>e.building==='B Building');
+  if(!data.length){document.getElementById('todayList').innerHTML='<div class="empty">📭 कोणतीही नोंद नाही</div>';return;}
+  document.getElementById('todayList').innerHTML=data.map(e=>`
+    <div class="entry-row">${avatar(e.name)}
+      <div class="entry-info">
+        <div class="entry-name">${e.name}</div>
+        <div class="entry-meta">${e.building} · फ्लॅट ${e.flat}</div>
+        <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="time-chip">IN: ${e.inTime||'—'}</span>
+          ${e.outTime?`<span class="time-chip">OUT: ${e.outTime}</span>`:''}
+          ${e.duration?`<span class="duration-chip">⏱ ${e.duration} मिनिटे</span>`:''}
+        </div>
+      </div>${e.outTime?'<span class="badge-out">✅ पूर्ण</span>':'<span class="badge-in">🟢 आत</span>'}
+    </div>`).join('');
+}
+function filterToday(val,btn){todayFilter=val;document.querySelectorAll('#page-today .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderToday();}
+
+// ── MEMBERS ──────────────────────────────────────────────
+async function loadMembers() {
+  if(allMembers.length){renderMembers();return;}
+  document.getElementById('memberList').innerHTML='<div class="loading"><div class="spinner"></div>लोड होत आहे…</div>';
+  try {
+    const r=await api({action:'membersList'});
+    if(r.success){allMembers=r.members||[];renderMembers();}
+  } catch(e){document.getElementById('memberList').innerHTML='<div class="empty">⚠️ Error</div>';}
+}
+function renderMembers() {
+  const q=(document.getElementById('searchBox').value||'').toLowerCase();
+  let data=allMembers;
+  if(mBldgFilter!=='all')data=data.filter(m=>m.building===mBldgFilter);
+  if(q)data=data.filter(m=>m.name.toLowerCase().includes(q)||m.flat.toLowerCase().includes(q)||m.phone.includes(q));
+  document.getElementById('memberCount').textContent=`(${data.length} सभासद)`;
+  if(!data.length){document.getElementById('memberList').innerHTML='<div class="empty">🔍 सापडले नाही</div>';return;}
+  document.getElementById('memberList').innerHTML=data.map((m,i)=>`
+    <div class="entry-row">${avatar(m.name)}
+      <div class="entry-info">
+        <div class="entry-name">${m.name}</div>
+        <div class="entry-meta">${m.building} · फ्लॅट ${m.flat} · 📱 ${m.phone}</div>
+        <div class="time-chip" style="margin-top:4px">नोंदणी: ${m.regDate}</div>
+      </div><span class="badge-reg">#${i+1}</span>
+    </div>`).join('');
+}
+function filterMembers(){renderMembers();}
+function filterMBldg(val,btn){mBldgFilter=val;document.querySelectorAll('#page-members .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderMembers();}
+
+// ── REPORT ───────────────────────────────────────────────
+async function loadReport(period,btn) {
+  reportPeriod=period;
+  if(btn){document.querySelectorAll('#page-report .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+  document.getElementById('reportContent').innerHTML='<div class="loading"><div class="spinner"></div>लोड होत आहे…</div>';
+  try {
+    const r=await api({action:'report',period});
+    if(!r.success)throw new Error(r.message);
+    reportData=r;
+    renderReport(r,period);
+  } catch(e){document.getElementById('reportContent').innerHTML='<div class="empty">⚠️ '+e.message+'</div>';}
+}
+function renderReport(r,period) {
+  const days=r.days||[];
+  const maxVal=Math.max(...days.map(d=>d.count),1);
+  const total=days.reduce((s,d)=>s+d.count,0);
+  const avg=days.length?Math.round(total/days.length):0;
+  const best=days.reduce((a,b)=>b.count>a.count?b:a,days[0]||{});
+  const bars=days.map(d=>{
+    const pct=Math.round((d.count/maxVal)*100);
+    const col=d.count>=avg?'var(--green)':'var(--fire)';
+    return `<div class="bar-row">
+      <div class="bar-label">${d.label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="bar-val" style="color:${col}">${d.count}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('reportContent').innerHTML=`
+    <div class="stats-row" style="margin-bottom:14px">
+      <div class="stat-card"><div class="stat-num" style="color:var(--blue)">${total}</div><div class="stat-label">एकूण Visits</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--green)">${avg}</div><div class="stat-label">दैनिक सरासरी</div></div>
+    </div>
+    ${best?`<div class="entry-row" style="margin-bottom:14px">
+      <div style="font-size:28px">🏆</div>
+      <div class="entry-info"><div class="entry-name">सर्वात जास्त Visits</div>
+      <div class="entry-meta">${best.label} — ${best.count} visits</div></div></div>`:''}
+    <div class="chart-wrap">
+      <div class="chart-title">${period==='week'?'आठवडानिहाय':'महिनानिहाय'} Attendance</div>${bars}
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════
+// ── PDF DOWNLOAD FUNCTIONS ──────────────────────────
+// ════════════════════════════════════════════════════
+const { jsPDF } = window.jspdf;
+
+function pdfHeader(doc, title, subtitle) {
+  const pageW = doc.internal.pageSize.getWidth();
+  // Header bar
+  doc.setFillColor(255, 87, 34);
+  doc.rect(0, 0, pageW, 22, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(16);
+  doc.setFont('helvetica','bold');
+  doc.text('NIRMAN SOCIETY GYM', pageW/2, 10, {align:'center'});
+  doc.setFontSize(9);
+  doc.setFont('helvetica','normal');
+  doc.text('A Building & B Building', pageW/2, 16, {align:'center'});
+
+  // Title
+  doc.setTextColor(30,30,30);
+  doc.setFontSize(14);
+  doc.setFont('helvetica','bold');
+  doc.text(title, pageW/2, 32, {align:'center'});
+
+  if(subtitle) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(120,120,120);
+    doc.text(subtitle, pageW/2, 39, {align:'center'});
+  }
+
+  // Footer setup
+  const pageCount = doc.internal.getNumberOfPages();
+  doc.setFontSize(8);
+  doc.setTextColor(150,150,150);
+  doc.text('Generated: '+new Date().toLocaleString('en-IN'), 14, doc.internal.pageSize.getHeight()-8);
+  doc.text('Page 1', pageW-14, doc.internal.pageSize.getHeight()-8, {align:'right'});
+
+  return 45; // y start
+}
+
+// ── 1. Today Attendance PDF ──────────────────────────
+async function downloadTodayPDF() {
+  if(!todayData.length) { await loadToday(); }
+  const doc  = new jsPDF();
+  const today= new Date().toLocaleDateString('en-IN');
+  const y    = pdfHeader(doc, 'Today\'s Attendance Report', 'Date: ' + today);
+
+  const rows = todayData.map((e,i) => [
+    i+1,
+    e.name,
+    e.building,
+    e.flat,
+    e.inTime || '—',
+    e.outTime || 'Still Inside',
+    e.duration ? e.duration + ' min' : '—'
+  ]);
+
+  // Summary box
+  const total   = todayData.length;
+  const inside  = todayData.filter(e=>!e.outTime).length;
+  const completed = todayData.filter(e=>e.outTime).length;
+
+  doc.setFillColor(240,247,240);
+  doc.rect(14, y, 182, 18, 'F');
+  doc.setFontSize(9); doc.setFont('helvetica','bold');
+  doc.setTextColor(50,50,50);
+  doc.text(`Total Visits: ${total}`, 20, y+7);
+  doc.text(`Currently Inside: ${inside}`, 75, y+7);
+  doc.text(`Completed: ${completed}`, 140, y+7);
+
+  doc.autoTable({
+    startY: y+22,
+    head: [['#','Name','Building','Flat','IN Time','OUT Time','Duration']],
+    body: rows,
+    theme: 'grid',
+    headStyles: { fillColor:[255,87,34], textColor:255, fontStyle:'bold', fontSize:9 },
+    bodyStyles: { fontSize:8.5, textColor:[40,40,40] },
+    alternateRowStyles: { fillColor:[250,250,250] },
+    columnStyles: {
+      0:{cellWidth:10,halign:'center'},
+      1:{cellWidth:42},
+      2:{cellWidth:30},
+      3:{cellWidth:20,halign:'center'},
+      4:{cellWidth:28,halign:'center'},
+      5:{cellWidth:28,halign:'center'},
+      6:{cellWidth:22,halign:'center'}
+    },
+    didParseCell: (data) => {
+      if(data.column.index===5 && data.cell.raw==='Still Inside') {
+        data.cell.styles.textColor=[63,185,80];
+        data.cell.styles.fontStyle='bold';
+      }
+    }
+  });
+
+  doc.save(`Nirman_Gym_Today_${today.replace(/\//g,'-')}.pdf`);
+}
+
+// ── 2. Members List PDF ──────────────────────────────
+async function downloadMembersPDF() {
+  if(!allMembers.length){ await loadMembers(); }
+  const doc = new jsPDF();
+  const y   = pdfHeader(doc, 'Members List', `Total: ${allMembers.length} members`);
+
+  const aCnt = allMembers.filter(m=>m.building==='A Building').length;
+  const bCnt = allMembers.filter(m=>m.building==='B Building').length;
+
+  doc.setFillColor(235,245,255);
+  doc.rect(14,y,182,18,'F');
+  doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(50,50,50);
+  doc.text(`Total Members: ${allMembers.length}`, 20, y+7);
+  doc.text(`A Building: ${aCnt}`, 90, y+7);
+  doc.text(`B Building: ${bCnt}`, 150, y+7);
+
+  const rows = allMembers.map((m,i)=>[i+1, m.name, m.building, m.flat, m.phone, m.regDate]);
+
+  doc.autoTable({
+    startY: y+22,
+    head: [['#','Name','Building','Flat No','Mobile','Registration Date']],
+    body: rows,
+    theme: 'grid',
+    headStyles: {fillColor:[41,121,255],textColor:255,fontStyle:'bold',fontSize:9},
+    bodyStyles: {fontSize:8.5,textColor:[40,40,40]},
+    alternateRowStyles: {fillColor:[248,250,255]},
+    columnStyles: {
+      0:{cellWidth:10,halign:'center'},
+      1:{cellWidth:50},
+      2:{cellWidth:30},
+      3:{cellWidth:20,halign:'center'},
+      4:{cellWidth:30,halign:'center'},
+      5:{cellWidth:38}
+    },
+    didParseCell: (data) => {
+      if(data.column.index===2) {
+        data.cell.styles.textColor = data.cell.raw==='A Building'?[255,140,0]:[41,121,255];
+        data.cell.styles.fontStyle='bold';
+      }
+    }
+  });
+
+  doc.save('Nirman_Gym_Members.pdf');
+}
+
+// ── 3. Report PDF ────────────────────────────────────
+async function downloadReportPDF(period) {
+  const r = await api({action:'report', period});
+  if(!r.success) return;
+  const doc   = new jsPDF();
+  const label = period==='week' ? 'Weekly' : 'Monthly';
+  const days  = r.days || [];
+  const total = days.reduce((s,d)=>s+d.count,0);
+  const avg   = days.length ? Math.round(total/days.length) : 0;
+  const best  = days.reduce((a,b)=>b.count>a.count?b:a, days[0]||{});
+  const y     = pdfHeader(doc, `${label} Attendance Report`,
+                  new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'}));
+
+  // Summary
+  doc.setFillColor(255,245,235);
+  doc.rect(14,y,182,18,'F');
+  doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(50,50,50);
+  doc.text(`Total Visits: ${total}`, 20, y+7);
+  doc.text(`Daily Avg: ${avg}`, 85, y+7);
+  doc.text(`Best Day: ${best.label||'—'} (${best.count||0})`, 135, y+7);
+
+  // Bar chart (manual drawing)
+  const chartY = y + 28;
+  const chartH = 70;
+  const chartW = 170;
+  const barW   = Math.floor(chartW / days.length) - 3;
+  const maxVal = Math.max(...days.map(d=>d.count),1);
+
+  doc.setFillColor(245,245,245);
+  doc.rect(14, chartY, chartW, chartH, 'F');
+  doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(100,100,100);
+  doc.text('ATTENDANCE CHART', 14+chartW/2, chartY-3, {align:'center'});
+
+  days.forEach((d,i) => {
+    const bx   = 14 + i*(barW+3) + 2;
+    const bh   = Math.max(2, Math.round((d.count/maxVal)*(chartH-16)));
+    const by   = chartY + chartH - bh - 6;
+    const isHigh = d.count >= avg;
+    if(isHigh) doc.setFillColor(63,185,80);
+    else       doc.setFillColor(255,87,34);
+    doc.rect(bx, by, barW, bh, 'F');
+
+    // Count above bar
+    doc.setFontSize(7); doc.setFont('helvetica','bold');
+    doc.setTextColor(50,50,50);
+    if(d.count>0) doc.text(String(d.count), bx+barW/2, by-2, {align:'center'});
+
+    // Day label below
+    doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+    doc.setTextColor(100,100,100);
+    doc.text(d.label, bx+barW/2, chartY+chartH-1, {align:'center'});
+  });
+
+  // Table
+  const tableY = chartY + chartH + 10;
+  const tableRows = days.map((d,i)=>[
+    i+1, d.label, d.count,
+    d.count >= avg ? 'Above Avg' : 'Below Avg'
+  ]);
+
+  doc.autoTable({
+    startY: tableY,
+    head: [['#','Date','Visits','Status']],
+    body: tableRows,
+    theme: 'grid',
+    headStyles: {fillColor:[170,0,255],textColor:255,fontStyle:'bold',fontSize:9},
+    bodyStyles: {fontSize:8.5,textColor:[40,40,40]},
+    alternateRowStyles:{fillColor:[252,245,255]},
+    columnStyles:{
+      0:{cellWidth:12,halign:'center'},
+      1:{cellWidth:55},
+      2:{cellWidth:25,halign:'center'},
+      3:{cellWidth:40,halign:'center'}
+    },
+    didParseCell:(data)=>{
+      if(data.column.index===3){
+        data.cell.styles.textColor=data.cell.raw==='Above Avg'?[63,185,80]:[248,81,73];
+        data.cell.styles.fontStyle='bold';
+      }
+    }
+  });
+
+  doc.save(`Nirman_Gym_${label}_Report.pdf`);
+}
+</script>
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js")
+      .then(() => console.log("SW registered"))
+      .catch(e => console.log("SW error", e));
+  });
+}
+</script>
+</body>
+</html>
